@@ -4,6 +4,16 @@ const addBtn = document.getElementById("addBtn");
 const taskList = document.getElementById("taskList");
 const taskCounter = document.getElementById("taskCounter");
 const clearBtn = document.getElementById("clearBtn");
+const totalCount = document.getElementById("totalCount");
+const completedCount = document.getElementById("completedCount");
+const pendingCount = document.getElementById("pendingCount");
+const progressText = document.getElementById("progressText");
+const progressFill = document.getElementById("progressFill");
+const filterButtons = document.querySelectorAll(".filter-btn");
+const searchInput = document.getElementById("searchInput");
+
+let searchText = "";
+let currentFilter = "all";
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
@@ -15,6 +25,16 @@ function displayTasks() {
     taskList.innerHTML = "";
 
     tasks.forEach(function(task, index) {
+        if (!task.text.toLowerCase().includes(searchText.toLowerCase())) {
+    return;
+}
+        if (currentFilter === "pending" && task.completed) {
+    return;
+}
+
+if (currentFilter === "completed" && !task.completed) {
+    return;
+}
         const li = document.createElement("li");
 
         const span = document.createElement("span");
@@ -70,7 +90,20 @@ function displayTasks() {
 
     taskCounter.textContent =
         `Total Tasks: ${tasks.length} | Completed: ${completedTasks}`;
+    
+        totalCount.textContent = tasks.length;
+
+    completedCount.textContent = completedTasks;
+
+pendingCount.textContent = tasks.length - completedTasks;
+const progress = tasks.length === 0
+    ? 0
+    : Math.round((completedTasks / tasks.length) * 100);
+
+progressText.textContent = progress + "%";
+progressFill.style.width = progress + "%";
 }
+
 
 addBtn.addEventListener("click", function() {
     const taskText = taskInput.value.trim();
@@ -110,3 +143,23 @@ clearBtn.addEventListener("click", function() {
 });
 
 displayTasks();
+filterButtons.forEach(function(button) {
+    button.addEventListener("click", function() {
+
+        currentFilter = button.dataset.filter;
+
+        filterButtons.forEach(function(btn) {
+            btn.classList.remove("active");
+        });
+
+        button.classList.add("active");
+
+        displayTasks();
+    });
+});
+
+// Search Functionality
+searchInput.addEventListener("input", function() {
+    searchText = searchInput.value;
+    displayTasks();
+});
